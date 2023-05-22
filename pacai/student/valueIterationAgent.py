@@ -38,8 +38,18 @@ class ValueIterationAgent(ValueEstimationAgent):
         self.iters = iters
         self.values = {}  # A dictionary which holds the q-values for each state.
 
-        # Compute the values here.
-        raise NotImplementedError()
+        # Initialize each state's value to be 0.
+        for state in mdp.getStates():
+            self.values[state] = 0.0
+
+        # Perform value iteration.
+        for _ in range(iters):
+            temp = {}
+            for state in mdp.getStates():
+                actions = mdp.getPossibleActions(state)
+                if len(actions) > 0:
+                    temp[state] = max([self.getQValue(state, action) for action in actions])
+            self.values = temp
 
     def getValue(self, state):
         """
@@ -54,3 +64,22 @@ class ValueIterationAgent(ValueEstimationAgent):
         """
 
         return self.getPolicy(state)
+
+    def getQValue(self, state, action):
+        """
+        Returns the q-value of the state action pair.
+        """
+
+        transitions = self.mdp.getTransitionStatesAndProbs(state, action)
+        return sum([prob * (self.mdp.getReward(state, action, nextState)
+            + self.discountRate * self.getValue(nextState)) for nextState, prob in transitions])
+
+    def getPolicy(self, state):
+        """
+        Returns the policy at the state (no exploration).
+        """
+
+        actions = self.mdp.getPossibleActions(state)
+        if not len(actions):
+            return None
+        return max(actions, key = lambda action: self.getQValue(state, action))

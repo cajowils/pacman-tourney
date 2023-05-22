@@ -11,78 +11,83 @@ NOT_POSSIBLE = None
 
 def question2():
     """
-    [Enter a description of what you did here.]
+    Drop the noise to 0 to make the agent more confident about walking in between the cliffs.
     """
 
     answerDiscount = 0.9
-    answerNoise = 0.2
+    answerNoise = 0.0
 
     return answerDiscount, answerNoise
 
 def question3a():
     """
-    [Enter a description of what you did here.]
+    By making the living reward negative, the agent will try to get to a
+    terminal state as fast as possible. -2.0 is the lowest value that
+    will make the agent go to the closest pit while also risking the cliff.
     """
 
     answerDiscount = 0.9
     answerNoise = 0.2
-    answerLivingReward = 0.0
+    answerLivingReward = -2.0
 
     return answerDiscount, answerNoise, answerLivingReward
 
 def question3b():
     """
-    [Enter a description of what you did here.]
+    We can lower the discount rate to make the agent care less about the future,
+    encouraging it to take the shorter path. We need to keep the living reward negative
+    to make it go to a terminal state quicker.
     """
 
-    answerDiscount = 0.9
+    answerDiscount = 0.5
     answerNoise = 0.2
-    answerLivingReward = 0.0
+    answerLivingReward = -1.5
 
     return answerDiscount, answerNoise, answerLivingReward
 
 def question3c():
     """
-    [Enter a description of what you did here.]
+    Similar to 3a, we need a negative living reward to make the agent risk the cliff.
+    However, we need it to go the the further pit this time, so we need a higher living reward.
     """
 
     answerDiscount = 0.9
     answerNoise = 0.2
-    answerLivingReward = 0.0
+    answerLivingReward = -1.0
 
     return answerDiscount, answerNoise, answerLivingReward
 
 def question3d():
     """
-    [Enter a description of what you did here.]
+    We can make the living reward less negative to encourage the agent to
+    take the longer path to the further terminal state.
     """
 
     answerDiscount = 0.9
     answerNoise = 0.2
-    answerLivingReward = 0.0
+    answerLivingReward = -0.1
 
     return answerDiscount, answerNoise, answerLivingReward
 
 def question3e():
     """
-    [Enter a description of what you did here.]
+    By making the living reward arbitrarily positive, the agent will try to stay
+    alive as long as possible, avoiding terminal states such as the cliff and rewards.
     """
 
-    answerDiscount = 0.9
+    answerDiscount = 0.5
     answerNoise = 0.2
-    answerLivingReward = 0.0
+    answerLivingReward = 100
 
     return answerDiscount, answerNoise, answerLivingReward
 
 def question6():
     """
-    [Enter a description of what you did here.]
+    50 iterations is not enough for the agent to learn the optimal policy
+    for any epsilon-learning rate combination.
     """
 
-    answerEpsilon = 0.3
-    answerLearningRate = 0.5
-
-    return answerEpsilon, answerLearningRate
+    return NOT_POSSIBLE
 
 if __name__ == '__main__':
     questions = [

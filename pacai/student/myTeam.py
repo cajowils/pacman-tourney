@@ -15,5 +15,6 @@ def createTeam(firstIndex, secondIndex, isRed,
 
     return [
         firstAgent(firstIndex),
-        secondAgent(secondIndex),
+        secondAgent(secondIndex)
     ]
+
