@@ -1,8 +1,10 @@
 from pacai.util import reflection
+from pacai.agents.capture.capture import CaptureAgent
+import random
 
 def createTeam(firstIndex, secondIndex, isRed,
-        first = 'pacai.agents.capture.dummy.DummyAgent',
-        second = 'pacai.agents.capture.dummy.DummyAgent'):
+        first = 'pacai.student.myTeam.dummyAgent',
+        second = 'pacai.student.myTeam.dummyAgent'):
     """
     This function should return a list of two agents that will form the capture team,
     initialized using firstIndex and secondIndex as their agent indexed.
@@ -18,3 +20,15 @@ def createTeam(firstIndex, secondIndex, isRed,
         secondAgent(secondIndex)
     ]
 
+class dummyAgent(CaptureAgent):
+
+    def __init__(self, index, timeForComputing = 0.1, **kwargs):
+        super().__init__(index, timeForComputing, **kwargs)
+
+    def chooseAction(self, gameState):
+        """
+        Randomly pick an action.
+        """
+
+        actions = gameState.getLegalActions(self.index)
+        return random.choice(actions)
