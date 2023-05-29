@@ -84,16 +84,16 @@ class EightPuzzleState:
 
         moves = []
         row, col = self.blankLocation
-        if(row != 0):
+        if (row != 0):
             moves.append('up')
 
-        if(row != 2):
+        if (row != 2):
             moves.append('down')
 
-        if(col != 0):
+        if (col != 0):
             moves.append('left')
 
-        if(col != 2):
+        if (col != 2):
             moves.append('right')
 
         return moves
