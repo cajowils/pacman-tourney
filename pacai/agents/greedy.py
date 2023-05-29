@@ -13,7 +13,7 @@ class GreedyAgent(BaseAgent):
         super().__init__(index, **kwargs)
 
         self.evaluationFunction = reflection.qualifiedImport(evalFn)
-        assert(self.evaluationFunction is not None)
+        assert (self.evaluationFunction is not None)
 
     def getAction(self, state):
         # Generate candidate actions
