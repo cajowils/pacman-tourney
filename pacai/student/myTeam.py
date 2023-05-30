@@ -6,7 +6,7 @@ from pacai.core.directions import Directions
 
 def createTeam(firstIndex, secondIndex, isRed,
         first = 'pacai.student.myTeam.OffensiveAgent',
-        second = 'pacai.agents.capture.defense.DefensiveReflexAgent'):
+        second = 'pacai.student.myTeam.DefensiveAgent'):
     """
     This function should return a list of two agents that will form the capture team,
     initialized using firstIndex and secondIndex as their agent indexed.
@@ -149,4 +149,99 @@ class OffensiveAgent(ReflexCaptureAgent):
             'reverse': -2,
             'normalValue': 2,
             'scaredValue': 2
+        }
+
+class DefensiveAgent(ReflexCaptureAgent):
+    """
+    CREDIT: Part of this code comes from:
+        pacai.agents.capture.offense.OffensiveReflexiveAgent
+        pacai.agents.capture.defense.DefensiveRefelexiveAgent
+    The DefensiveAgent inherits from the given ReflexiveCaptureAgent and utilizes additional
+    features for a more effective DefensiveAgent.
+
+    DESCRIPTION: We used the following features for our implementation of getFeatures:
+        1. numInvaders - Checking whether there are invaders or not
+        2. onDefense - Check whether pacman is on defense or not on defense
+        3. invaderDistance - Check distance to invaders, getting closer yields a higher value
+        4. stop - Discourage stopping
+        5. reverse - Discourage reversing, i.e. moving back in the same direction
+        6. edge - The edges that the agent should stick near, this is a value somewhere towards
+        the middle of the board
+    """
+
+    def __init__(self, index, **kwargs):
+        super().__init__(index, **kwargs)
+
+    def registerInitialState(self, gameState):
+        super().registerInitialState(gameState)
+
+        # Initialize walls
+        walls = gameState.getWalls().asList()
+
+        # Find x coordinate edge
+        x = max([w[0] for w in walls]) / 2
+        if not self.red:
+            x += 2
+
+        # Create y coordinate edge
+        topY = max([w[1] for w in walls])
+        upperEdge = topY * 2 / 3
+        lowerEdge = topY / 3
+
+        self.edges = [(x, upperEdge), (x, lowerEdge)]
+
+        # False when travelling to bottom, True when travelling top
+        self.edge = False
+
+    def getFeatures(self, gameState, action):
+        features = {}
+
+        successor = self.getSuccessor(gameState, action)
+        myState = successor.getAgentState(self.index)
+        myPos = myState.getPosition()
+
+        # Computes whether we're on defense (1) or offense (0).
+        features['onDefense'] = 1
+        if (myState.isPacman()):
+            features['onDefense'] = 0
+
+        # Computes distance to invaders we can see.
+        enemies = [successor.getAgentState(i) for i in self.getOpponents(successor)]
+        invaders = [a for a in enemies if a.isPacman() and a.getPosition() is not None]
+        features['numInvaders'] = len(invaders)
+
+        if (len(invaders) > 0):
+            dists = [self.getMazeDistance(myPos, a.getPosition()) for a in invaders]
+            features['invaderDistance'] = min(dists)
+        else:
+            if self.edge and myPos == self.edges[0]:
+                self.edge = False
+                features['edge'] = self.getMazeDistance(myPos, self.edges[0])
+            elif not self.edge and myPos == self.edges[1]:
+                self.edge = True
+                features['edge'] = self.getMazeDistance(myPos, self.edges[1])
+
+        if (action == Directions.STOP):
+            features['stop'] = 1
+
+        rev = Directions.REVERSE[gameState.getAgentState(self.index).getDirection()]
+        if (action == rev):
+            features['reverse'] = 1
+
+        # return features
+        return features
+
+    def getWeights(self, gameState, action):
+        # To silence warnings
+        gameState = gameState
+        action = action
+
+        # return weights
+        return {
+            'numInvaders': -1000,
+            'onDefense': 100,
+            'invaderDistance': -10,
+            'stop': -100,
+            'reverse': -2,
+            'edge': -15
         }
