@@ -1,4 +1,3 @@
-from pacai.util import reflection
 # from pacai.agents.capture.capture import CaptureAgent
 from pacai.agents.capture.reflex import ReflexCaptureAgent
 from pacai.core.directions import Directions
@@ -14,12 +13,9 @@ def createTeam(firstIndex, secondIndex, isRed,
     and will be False if the blue team is being created.
     """
 
-    firstAgent = reflection.qualifiedImport(first)
-    secondAgent = reflection.qualifiedImport(second)
-
     return [
-        firstAgent(firstIndex),
-        secondAgent(secondIndex)
+        OffensiveAgent(firstIndex),
+        DefensiveAgent(secondIndex)
     ]
 
 class OffensiveAgent(ReflexCaptureAgent):
