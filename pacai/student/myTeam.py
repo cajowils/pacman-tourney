@@ -25,83 +25,48 @@ class MiniMaxReflexCaptureAgent(ReflexCaptureAgent):
     def __init__(self, index, **kwargs):
         super().__init__(index, **kwargs)
 
-    def getEvaluationFunction(self, currentGameState):
-        """
-        Your extreme ghost-hunting, pellet-nabbing, food-gobbling, unstoppable evaluation function.
-
-        DESCRIPTION: <First off, this evaluation function is based off Prof. Gilpin's
-        compendium notes. I take the manhattan distance of the food aswell as
-        the ghost states, and check if they are close to pacman. If pacman is close to a food
-        we do a reciprocal to encourage pacman to eat that food. For the ghost state we encourage
-        pacman to run away which is why we make our score a negative constant.
-        We also add the value of the scared ghost so that pacman can take pellets close to
-        a scared ghost. >
-        """
-
-        # take into account the terminal states/ win or lose
-        # only focus on the closest food
-        # tell the pacman if they're close enough to the food
-        oldFood = currentGameState.getFood()
-        oldFoodList = oldFood.asList()
-        currentPacmanPos = currentGameState.getPacmanPosition()
-        ghostStates = currentGameState.getGhostStates()
-        foodDistScore = 0
-        ghostDistScore = 0
-        # find the distance of pacman to each food using manhattan distance
-        foodDist = [distance.manhattan(currentPacmanPos, food) for food in oldFoodList]
-        # find the lowest time that pacman is scared.
-        newScaredTimes = min([ghostState.getScaredTimer() for ghostState in ghostStates])
-        minFood = min(foodDist) if foodDist else 0
-        if minFood < 10:
-            # if the food is close by we encourage pacman to eat that food
-            foodDistScore = 1 / (minFood + 0.1)
-        else:
-            # if the food isn't close we don't encourage pacman to go eat that fod
-            foodDistScore = 0
-        # find the distance of pacman to eat ghost using the manhattan distance
-        ghostDist = [distance.manhattan(currentPacmanPos, ghost.getPosition()) for ghost in ghostStates]
-        minGhost = min(ghostDist) if ghostDist else 0
-        if minGhost < 10:
-            # if a ghost is nearby we heavily discourage pacman to go towards the ghost
-            ghostDistScore = -10000
-        else:
-            ghostDistScore = -1 / (minGhost + 0.1)
-        # return the score based on the current game score
-        # as well as the scores of the food/ghost/scared ghost time
-        return currentGameState.getScore() + foodDistScore + ghostDistScore + newScaredTimes
-
     def getTreeDepth(self):
         return 2
-
-    # def getAction(self, gameState):
-    #     return self.minimax(gameState)
+    
+    def getAction(self, gameState):
+        return self.minimax(gameState)
 
     def minimax(self, gameState):
         """
         Uses minimax algorithm to return the best possible action for the first agent
         within a given tree depth
         """
-        return self.maxValue(gameState, self.getTreeDepth())
 
-    def maxValue(self, gameState, treeDepth):
+        ourTeam = self.getTeam(gameState)
+
+        if self.index in ourTeam:
+            return self.maxValue(gameState, self.getTreeDepth(), self.index)
+
+    def maxValue(self, gameState, treeDepth, agentIndex):
         """
         Finds the maximum value of the current state's possible actions
         """
         v = float('-inf')
 
         if self.terminalNode(gameState, treeDepth):
-            return self.getEvaluationFunction(gameState)
+            return self.evaluate(gameState, Directions.STOP)
+        
+        # If current agent is the last, switch to max agent
+        if agentIndex == (self.index + 3) % 4:
+            treeDepth -= 1
 
         bestAction = None
         for action in gameState.getLegalActions(0):
-            newV = self.minValue(gameState.generateSuccessor(0, action), treeDepth)
+            newV = self.minValue(gameState.generateSuccessor(0, action), treeDepth, (agentIndex + 1) % 4)
             if newV > v:
                 v = newV
                 bestAction = action
 
-        return bestAction if treeDepth == self.getTreeDepth() else v
+        print(bestAction, v)
+        print(gameState.getLegalActions(0))
+        return bestAction if (treeDepth == self.getTreeDepth() and agentIndex == self.index) else v
 
-    def minValue(self, gameState, treeDepth, agentIndex = 1):
+    def minValue(self, gameState, treeDepth, agentIndex):
         """
         Returns the minimum tree values for each min agent
         """
@@ -109,14 +74,15 @@ class MiniMaxReflexCaptureAgent(ReflexCaptureAgent):
         v = float('inf')
 
         if self.terminalNode(gameState, treeDepth):
-            return self.getEvaluationFunction(gameState)
+            return self.evaluate(gameState, Directions.STOP)
 
         # If current agent is the last, switch to max agent
-        if agentIndex == gameState.getNumAgents() - 1:
-            return self.maxValue(gameState, treeDepth - 1)
+        if agentIndex == (self.index + 3) % 4:
+            treeDepth -= 1
+        
         for action in gameState.getLegalActions(agentIndex):
             v = min(v, self.minValue(gameState.generateSuccessor(agentIndex, action),
-                                     treeDepth, agentIndex + 1))
+                                     treeDepth, (agentIndex + 1) % 4))
         return v
 
     def terminalNode(self, gameState, treeDepth):
@@ -124,8 +90,6 @@ class MiniMaxReflexCaptureAgent(ReflexCaptureAgent):
         Checks whether a given state is a terminal node
         """
         return gameState.isWin() or gameState.isLose() or treeDepth == 0
-
-    
 
 
 class OffensiveAgent(MiniMaxReflexCaptureAgent):
