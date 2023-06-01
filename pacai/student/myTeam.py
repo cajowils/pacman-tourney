@@ -2,7 +2,6 @@
 from pacai.agents.capture.reflex import ReflexCaptureAgent
 from pacai.core.directions import Directions
 from pacai.agents.search.multiagent import MultiAgentSearchAgent
-from pacai.core import distance
 
 
 def createTeam(firstIndex, secondIndex, isRed,
@@ -26,7 +25,7 @@ class MiniMaxReflexCaptureAgent(ReflexCaptureAgent):
         super().__init__(index, **kwargs)
 
     def getTreeDepth(self):
-        return 2
+        return 1
     
     def chooseAction(self, gameState):
         return self.minimax(gameState)
@@ -76,7 +75,7 @@ class MiniMaxReflexCaptureAgent(ReflexCaptureAgent):
             treeDepth -= 1
         
         for action in gameState.getLegalActions(agentIndex):
-            v = min(v, self.minValue(gameState.generateSuccessor(agentIndex, action),
+            v = min(v, self.maxValue(gameState.generateSuccessor(agentIndex, action),
                                      treeDepth, (agentIndex + 1) % 4))
         return v
 
@@ -261,7 +260,7 @@ class DefensiveAgent(MiniMaxReflexCaptureAgent):
     def getFeatures(self, gameState, action):
         features = {}
 
-        successor = self.getSuccessor(gameState, action)
+        successor = gameState
         myState = successor.getAgentState(self.index)
         myPos = myState.getPosition()
 
