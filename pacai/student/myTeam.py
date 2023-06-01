@@ -1,7 +1,7 @@
+from pacai.util import reflection
 # from pacai.agents.capture.capture import CaptureAgent
 from pacai.agents.capture.reflex import ReflexCaptureAgent
 from pacai.core.directions import Directions
-from pacai.agents.search.multiagent import MultiAgentSearchAgent
 
 
 def createTeam(firstIndex, secondIndex, isRed,
@@ -14,79 +14,15 @@ def createTeam(firstIndex, secondIndex, isRed,
     and will be False if the blue team is being created.
     """
 
+    firstAgent = reflection.qualifiedImport(first)
+    secondAgent = reflection.qualifiedImport(second)
+
     return [
-        OffensiveAgent(firstIndex),
-        DefensiveAgent(secondIndex)
+        firstAgent(firstIndex),
+        secondAgent(secondIndex)
     ]
 
-
-class MiniMaxReflexCaptureAgent(ReflexCaptureAgent):
-    def __init__(self, index, **kwargs):
-        super().__init__(index, **kwargs)
-
-    def getTreeDepth(self):
-        return 1
-    
-    def chooseAction(self, gameState):
-        return self.minimax(gameState)
-
-    def minimax(self, gameState):
-        """
-        Uses minimax algorithm to return the best possible action for the first agent
-        within a given tree depth
-        """
-
-        return self.maxValue(gameState, self.getTreeDepth(), self.index)
-
-    def maxValue(self, gameState, treeDepth, agentIndex):
-        """
-        Finds the maximum value of the current state's possible actions
-        """
-        v = float('-inf')
-
-        if self.terminalNode(gameState, treeDepth):
-            return self.evaluate(gameState, Directions.STOP)
-        
-        # If current agent is the last, switch to max agent
-        if agentIndex == (self.index + 3) % 4:
-            treeDepth -= 1
-
-        bestAction = None
-        for action in gameState.getLegalActions(agentIndex):
-            newV = self.minValue(gameState.generateSuccessor(agentIndex, action), treeDepth, (agentIndex + 1) % 4)
-            if newV > v:
-                v = newV
-                bestAction = action
-
-        return bestAction if (treeDepth == self.getTreeDepth() and agentIndex == self.index) else v
-
-    def minValue(self, gameState, treeDepth, agentIndex):
-        """
-        Returns the minimum tree values for each min agent
-        """
-
-        v = float('inf')
-
-        if self.terminalNode(gameState, treeDepth):
-            return self.evaluate(gameState, Directions.STOP)
-
-        # If current agent is the last, switch to max agent
-        if agentIndex == (self.index + 3) % 4:
-            treeDepth -= 1
-        
-        for action in gameState.getLegalActions(agentIndex):
-            v = min(v, self.maxValue(gameState.generateSuccessor(agentIndex, action),
-                                     treeDepth, (agentIndex + 1) % 4))
-        return v
-
-    def terminalNode(self, gameState, treeDepth):
-        """
-        Checks whether a given state is a terminal node
-        """
-        return gameState.isWin() or gameState.isLose() or treeDepth == 0
-
-
-class OffensiveAgent(MiniMaxReflexCaptureAgent):
+class OffensiveAgent(ReflexCaptureAgent):
     """
     CREDIT: Part of this code comes from:
         pacai.agents.capture.offense.OffensiveReflexiveAgent
@@ -215,7 +151,7 @@ class OffensiveAgent(MiniMaxReflexCaptureAgent):
             'scaredValue': 2
         }
 
-class DefensiveAgent(MiniMaxReflexCaptureAgent):
+class DefensiveAgent(ReflexCaptureAgent):
     """
     CREDIT: Part of this code comes from:
         pacai.agents.capture.offense.OffensiveReflexiveAgent
@@ -260,7 +196,7 @@ class DefensiveAgent(MiniMaxReflexCaptureAgent):
     def getFeatures(self, gameState, action):
         features = {}
 
-        successor = gameState
+        successor = self.getSuccessor(gameState, action)
         myState = successor.getAgentState(self.index)
         myPos = myState.getPosition()
 
@@ -309,36 +245,3 @@ class DefensiveAgent(MiniMaxReflexCaptureAgent):
             'reverse': -2,
             'edge': -15
         }
-
-
-class MinimaxAgent(MultiAgentSearchAgent):
-    """
-    A minimax agent.
-
-    Here are some method calls that might be useful when implementing minimax.
-
-    `pacai.core.gamestate.AbstractGameState.getNumAgents()`:
-    Get the total number of agents in the game
-
-    `pacai.core.gamestate.AbstractGameState.getLegalActions`:
-    Returns a list of legal actions for an agent.
-    Pacman is always at index 0, and ghosts are >= 1.
-
-    `pacai.core.gamestate.AbstractGameState.generateSuccessor`:
-    Get the successor game state after an agent takes an action.
-
-    `pacai.core.directions.Directions.STOP`:
-    The stop direction, which is always legal, but you may not want to include in your search.
-
-    Method to Implement:
-
-    `pacai.agents.base.BaseAgent.getAction`:
-    Returns the minimax action from the current gameState using
-    `pacai.agents.search.multiagent.MultiAgentSearchAgent.getTreeDepth`
-    and `pacai.agents.search.multiagent.MultiAgentSearchAgent.getEvaluationFunction`.
-    """
-
-    def __init__(self, index, **kwargs):
-        super().__init__(index, **kwargs)
-
-    
