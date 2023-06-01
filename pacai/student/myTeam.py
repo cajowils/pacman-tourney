@@ -28,7 +28,7 @@ class MiniMaxReflexCaptureAgent(ReflexCaptureAgent):
     def getTreeDepth(self):
         return 2
     
-    def getAction(self, gameState):
+    def chooseAction(self, gameState):
         return self.minimax(gameState)
 
     def minimax(self, gameState):
@@ -37,10 +37,7 @@ class MiniMaxReflexCaptureAgent(ReflexCaptureAgent):
         within a given tree depth
         """
 
-        ourTeam = self.getTeam(gameState)
-
-        if self.index in ourTeam:
-            return self.maxValue(gameState, self.getTreeDepth(), self.index)
+        return self.maxValue(gameState, self.getTreeDepth(), self.index)
 
     def maxValue(self, gameState, treeDepth, agentIndex):
         """
@@ -56,14 +53,12 @@ class MiniMaxReflexCaptureAgent(ReflexCaptureAgent):
             treeDepth -= 1
 
         bestAction = None
-        for action in gameState.getLegalActions(0):
-            newV = self.minValue(gameState.generateSuccessor(0, action), treeDepth, (agentIndex + 1) % 4)
+        for action in gameState.getLegalActions(agentIndex):
+            newV = self.minValue(gameState.generateSuccessor(agentIndex, action), treeDepth, (agentIndex + 1) % 4)
             if newV > v:
                 v = newV
                 bestAction = action
 
-        print(bestAction, v)
-        print(gameState.getLegalActions(0))
         return bestAction if (treeDepth == self.getTreeDepth() and agentIndex == self.index) else v
 
     def minValue(self, gameState, treeDepth, agentIndex):
