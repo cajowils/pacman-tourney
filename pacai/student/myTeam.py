@@ -120,7 +120,7 @@ class OffensiveAgent(ReflexCaptureAgent):
 
             # Update scaredValue if fits requirements
             if scaredVal == 0:
-                features['scaredValue'] = 5
+                features['scaredValue'] = 1
 
         # Calculate the invaderValue
         if invaders:
@@ -139,16 +139,16 @@ class OffensiveAgent(ReflexCaptureAgent):
 
         # return weights
         return {
-            'successorScore': 100,
+            'successorScore': 200,
             'invaderValue': -50,
             'numInvaders': -1000,
             'distanceToFood': -1,
             'remainingFood': -1,
             'distanceToCapsules': -2,
             'stop': -100,
-            'reverse': -2,
+            'reverse': -20,
             'normalValue': 2,
-            'scaredValue': 2
+            'scaredValue': 10
         }
 
 class DefensiveAgent(ReflexCaptureAgent):
@@ -240,8 +240,8 @@ class DefensiveAgent(ReflexCaptureAgent):
         return {
             'numInvaders': -1000,
             'onDefense': 100,
-            'invaderDistance': -10,
+            'invaderDistance': -100,
             'stop': -100,
-            'reverse': -2,
-            'edge': -15
+            'reverse': -20,
+            'edge': -10
         }
