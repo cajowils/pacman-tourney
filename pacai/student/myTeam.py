@@ -2,7 +2,7 @@ from pacai.util import reflection
 # from pacai.agents.capture.capture import CaptureAgent
 from pacai.agents.capture.reflex import ReflexCaptureAgent
 from pacai.core.directions import Directions
-
+from pacai.core import distance
 
 def createTeam(firstIndex, secondIndex, isRed,
         first = 'pacai.student.myTeam.OffensiveAgent',
@@ -65,7 +65,7 @@ class OffensiveAgent(ReflexCaptureAgent):
             minDistance = min([self.getMazeDistance(myPos, food) for food in foodList])
             features['remainingFood'] = len(foodList)
             features['distanceToFood'] = minDistance
-
+            features['densityFood'] = self.calculateDensityValue(successor, False)
         # Discourage stop action
         if (action == Directions.STOP):
             features['stop'] = 1
@@ -132,6 +132,43 @@ class OffensiveAgent(ReflexCaptureAgent):
 
         return features
 
+    def getDensityDict(self, gameState, d = False):
+        foodGrid = self.getFood(gameState)
+        defendFood = self.getFoodYouAreDefending(gameState)
+        foodList = self.getFood(gameState).asList()
+        densities = {}
+        bounds = None
+        if d:
+            bounds = (foodGrid.getWidth(), foodGrid.getHeight())
+        else:
+            bounds = (defendFood.getWidth(), defendFood.getHeight())
+
+        for x1, y1 in foodList:
+            minX = max(1, x1 - 3)
+            maxX = min(bounds[0], x1 + 3)
+            minY = max(1, y1 - 3)
+            maxY = min(bounds[1], y1 + 3)
+            foodCount = 0
+            for x2 in range(minX, maxX):
+                for y2  in range(minY, maxY):
+                    if x2 < bounds[0] and x2 > 0 and y2 < bounds[1] and y2 > 0:
+                        if d and defendFood[x2][y2]:
+                            foodCount += 1
+                        elif not d and foodGrid[x2][y2]:
+                            foodCount += 1
+            densities[(x1, y1)] = foodCount
+
+        return densities
+
+    def calculateDensityValue(self, gameState, d = False):
+        densities = self.getDensityDict(gameState, d)
+        densityCalculation = 0
+        myPos = gameState.getAgentState(self.index).getPosition()
+        for key in densities.keys():
+            densityCalculation += self.getMazeDistance(myPos, key) * densities[key]
+        densityCalculation = 1.0 / densityCalculation
+        return densityCalculation
+
     def getWeights(self, gameState, action):
         # To silence warnings
         gameState = gameState
@@ -148,7 +185,8 @@ class OffensiveAgent(ReflexCaptureAgent):
             'stop': -100,
             'reverse': -20,
             'normalValue': 2,
-            'scaredValue': 10
+            'scaredValue': 10,
+            'densityFood': 0
         }
 
 class DefensiveAgent(ReflexCaptureAgent):
