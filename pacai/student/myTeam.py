@@ -3,7 +3,6 @@ from pacai.util import reflection
 # from pacai.agents.capture.capture import CaptureAgent
 from pacai.agents.capture.reflex import ReflexCaptureAgent
 from pacai.core.directions import Directions
-from pacai.core import distance
 
 
 def createTeam(
