@@ -133,21 +133,29 @@ class OffensiveAgent(ReflexCaptureAgent):
         return features
 
     def getDensityDict(self, gameState, d = False):
+        # Initialize variables to get the density
         foodGrid = self.getFood(gameState)
         defendFood = self.getFoodYouAreDefending(gameState)
         foodList = self.getFood(gameState).asList()
         densities = {}
         bounds = None
+
+        # Check whether on defense or not
         if d:
             bounds = (foodGrid.getWidth(), foodGrid.getHeight())
         else:
             bounds = (defendFood.getWidth(), defendFood.getHeight())
 
+        # Iterate through each food in the foodList
         for x1, y1 in foodList:
+
+            # Set boundaries
             minX = max(1, x1 - 3)
             maxX = min(bounds[0], x1 + 3)
             minY = max(1, y1 - 3)
             maxY = min(bounds[1], y1 + 3)
+
+            # Iterate through the x and y range and see if food exists
             foodCount = 0
             for x2 in range(minX, maxX):
                 for y2  in range(minY, maxY):
@@ -156,17 +164,27 @@ class OffensiveAgent(ReflexCaptureAgent):
                             foodCount += 1
                         elif not d and foodGrid[x2][y2]:
                             foodCount += 1
+
+            # Add to densities dictionary
             densities[(x1, y1)] = foodCount
 
+        # Returns a dictionary with (key, value) as (position, foodFound)
+        # near the key's position.
         return densities
 
     def calculateDensityValue(self, gameState, d = False):
+
+        # Get densities dictionary, position, and initialize returned value
         densities = self.getDensityDict(gameState, d)
         densityCalculation = 0
         myPos = gameState.getAgentState(self.index).getPosition()
+
+        # Iterate through densitity keys and multiply by distance from agent
         for key in densities.keys():
             densityCalculation += self.getMazeDistance(myPos, key) * densities[key]
         densityCalculation = 1.0 / densityCalculation
+
+        # Return accumulated variable
         return densityCalculation
 
     def getWeights(self, gameState, action):
@@ -185,8 +203,8 @@ class OffensiveAgent(ReflexCaptureAgent):
             'stop': -100,
             'reverse': -20,
             'normalValue': 2,
-            'scaredValue': 10,
-            'densityFood': 0
+            'scaredValue': 100000,
+            'densityFood': 100
         }
 
 class DefensiveAgent(ReflexCaptureAgent):
