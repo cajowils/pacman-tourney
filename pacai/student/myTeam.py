@@ -49,6 +49,10 @@ class OffensiveAgent(ReflexCaptureAgent):
         9. invaderValue - Minimum distance to enemy invaders, weighted less than defense
             but still here in case our offense agent is close enough to their attacker
         10. numInvaders - Included so pacman will attack enemy invader if next to it.
+        11. foodDensity - The density of food around a given piece of food. This is taken
+            as the sum of each given foodDensity * distance to the pacman. Then have
+            1.0 / accumulatedValue to incentivize going towards more crowded
+            food zones.
     """
 
     def __init__(self, index, **kwargs):
@@ -100,7 +104,6 @@ class OffensiveAgent(ReflexCaptureAgent):
         ]
         invaders = [a for a in enemies if a.isPacman() and a.getPosition() is not None]
         normalVal = 0
-        scaredVal = 0
         scared = []
         normal = []
 
@@ -123,10 +126,9 @@ class OffensiveAgent(ReflexCaptureAgent):
         # Calculate minimum distance to scared enemy defending agents
         if scared:
             distsScared = [self.getMazeDistance(myPos, a.getPosition()) for a in scared]
-            scaredVal = min(distsScared)
 
             # Update scaredValue if fits requirements
-            if scaredVal == 0:
+            if min(distsScared) == 0:
                 features["scaredValue"] = 1
 
         # Calculate the invaderValue
@@ -142,35 +144,28 @@ class OffensiveAgent(ReflexCaptureAgent):
         return features
 
     def getDensityDict(self, gameState, d=False):
-        # Initialize variables to get the density
-        foodGrid = self.getFood(gameState)
-        defendFood = self.getFoodYouAreDefending(gameState)
-        foodList = self.getFood(gameState).asList()
+        # Initialize variables for the density dictionary
+        foodGrid = None
         densities = {}
-        bounds = None
 
-        # Check whether on defense or not
+        # Decide food to look at based on defense or not defense
         if d:
-            bounds = (foodGrid.getWidth(), foodGrid.getHeight())
+            foodGrid = self.getFoodYouAreDefending(gameState)
         else:
-            bounds = (defendFood.getWidth(), defendFood.getHeight())
+            foodGrid = self.getFood(gameState)
+
+        # Determine bounds of the x and y of grid
+        bounds = (foodGrid.getWidth(), foodGrid.getHeight())
 
         # Iterate through each food in the foodList
-        for x1, y1 in foodList:
-            # Set boundaries
-            minX = max(1, x1 - 3)
-            maxX = min(bounds[0], x1 + 3)
-            minY = max(1, y1 - 3)
-            maxY = min(bounds[1], y1 + 3)
+        for x1, y1 in foodGrid.asList():
 
             # Iterate through the x and y range and see if food exists
             foodCount = 0
-            for x2 in range(minX, maxX):
-                for y2 in range(minY, maxY):
+            for x2 in range(max(1, x1 - 3), min(bounds[0], x1 + 3)):
+                for y2 in range(max(1, y1 - 3), min(bounds[1], y1 + 3)):
                     if x2 < bounds[0] and x2 > 0 and y2 < bounds[1] and y2 > 0:
-                        if d and defendFood[x2][y2]:
-                            foodCount += 1
-                        elif not d and foodGrid[x2][y2]:
+                        if foodGrid[x2][y2]:
                             foodCount += 1
 
             # Add to densities dictionary
