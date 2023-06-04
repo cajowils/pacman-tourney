@@ -162,8 +162,8 @@ class OffensiveAgent(ReflexCaptureAgent):
 
             # Iterate through the x and y range and see if food exists
             foodCount = 0
-            for x2 in range(max(1, x1 - 3), min(bounds[0], x1 + 3)):
-                for y2 in range(max(1, y1 - 3), min(bounds[1], y1 + 3)):
+            for x2 in range(max(1, x1 - 2), min(bounds[0], x1 + 2)):
+                for y2 in range(max(1, y1 - 2), min(bounds[1], y1 + 2)):
                     if x2 < bounds[0] and x2 > 0 and y2 < bounds[1] and y2 > 0:
                         if foodGrid[x2][y2]:
                             foodCount += 1
