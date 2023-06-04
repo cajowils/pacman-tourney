@@ -25,7 +25,7 @@ class MiniMaxReflexCaptureAgent(ReflexCaptureAgent):
         super().__init__(index, **kwargs)
 
     def getTreeDepth(self):
-        return 1
+        return 2
     
     def chooseAction(self, gameState):
         return self.minimax(gameState)
@@ -36,9 +36,9 @@ class MiniMaxReflexCaptureAgent(ReflexCaptureAgent):
         within a given tree depth
         """
 
-        return self.maxValue(gameState, self.getTreeDepth(), self.index)
+        return self.maxValue(gameState, self.getTreeDepth(), self.index, float('-inf'), float('inf'))
 
-    def maxValue(self, gameState, treeDepth, agentIndex):
+    def maxValue(self, gameState, treeDepth, agentIndex, alpha, beta):
         """
         Finds the maximum value of the current state's possible actions
         """
@@ -46,21 +46,25 @@ class MiniMaxReflexCaptureAgent(ReflexCaptureAgent):
 
         if self.terminalNode(gameState, treeDepth):
             return self.evaluate(gameState, Directions.STOP)
-        
+
         # If current agent is the last, switch to max agent
         if agentIndex == (self.index + 3) % 4:
             treeDepth -= 1
 
         bestAction = None
         for action in gameState.getLegalActions(agentIndex):
-            newV = self.minValue(gameState.generateSuccessor(agentIndex, action), treeDepth, (agentIndex + 1) % 4)
+            newV = self.minValue(gameState.generateSuccessor(agentIndex, action), treeDepth, (agentIndex + 1) % 4, alpha, beta)
             if newV > v:
                 v = newV
                 bestAction = action
 
+            if v >= beta:
+                return v
+            alpha = max(alpha, v)
+
         return bestAction if (treeDepth == self.getTreeDepth() and agentIndex == self.index) else v
 
-    def minValue(self, gameState, treeDepth, agentIndex):
+    def minValue(self, gameState, treeDepth, agentIndex, alpha, beta):
         """
         Returns the minimum tree values for each min agent
         """
@@ -73,10 +77,13 @@ class MiniMaxReflexCaptureAgent(ReflexCaptureAgent):
         # If current agent is the last, switch to max agent
         if agentIndex == (self.index + 3) % 4:
             treeDepth -= 1
-        
+
         for action in gameState.getLegalActions(agentIndex):
             v = min(v, self.maxValue(gameState.generateSuccessor(agentIndex, action),
-                                     treeDepth, (agentIndex + 1) % 4))
+                                     treeDepth, (agentIndex + 1) % 4, alpha, beta))
+            if v <= alpha:
+                return v
+            beta = min(beta, v)
         return v
 
     def terminalNode(self, gameState, treeDepth):
